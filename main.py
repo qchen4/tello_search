@@ -74,7 +74,6 @@ def orbit_phase():
 
 def main():
     global logger
-    
     try:
         signal.signal(signal.SIGINT, emergency_land)
         signal.signal(signal.SIGTERM, emergency_land)
@@ -104,7 +103,7 @@ def main():
         print("[INFO] Starting orbital phase...")
         if orbit_phase():
             print("[INFO] Orbital phase complete, starting precision landing...")
-            if precision_land():
+            if precision_land(logger):
                 print("[SUCCESS] Mission completed successfully!")
             else:
                 print("[WARNING] Precision landing failed")
@@ -113,6 +112,7 @@ def main():
             
     except Exception as e:
         print(f"[ERROR] Unexpected error in main: {e}")
+        logger.error(f"Unexpected error in main: {e}")
         emergency_land(None, None)
     finally:
         if logger:

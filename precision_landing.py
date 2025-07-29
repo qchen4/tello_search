@@ -37,7 +37,7 @@ def get_current_altitude():
     except (ValueError, TypeError):
         return 0
 
-def descend_to_altitude(target_altitude):
+def descend_to_altitude(target_altitude, logger):
     """
     Descend to a specific altitude using a relative 'go' command.
     Falls back to a fixed-distance descent if altitude reading fails.
@@ -57,22 +57,26 @@ def descend_to_altitude(target_altitude):
     print(f"[INFO] Descending from {current_alt}cm to {target_altitude}cm ({descent_needed}cm)")
     send(f"go 0 0 -{descent_needed} 20")
     # log the descent command as well
+    cam = state.get('cam', 'NA')
     logger.log(
-        time = clock.elapsed(),
-        error_x = 0,
-        error_y = 0,
-        h = get_current_altitude(),
-        vel_x = 0,
-        vel_y = 0,
-        vel_z = -descent_needed,
-        cam = camera_mode
+        0,   # padx
+        0,   # pady
+        0,   # error_x
+        0,   # error_y
+        0,   # vx
+        0,   # vy
+        -descent_needed,  # vz
+        cam
     )
+
+
+
     time.sleep(LAND_DESCENT_DELAY)
 
     new_alt = get_current_altitude()
     print(f"[INFO] New altitude: {new_alt}cm")
 
-def precision_land():
+def precision_land(logger):
     """
     Perform a multi‐layer precision landing:
       1. At each height in LAND_ALTITUDES, align to the pad center with a
@@ -131,17 +135,10 @@ def precision_land():
 
             send_alignment_command(err_x, err_y)
 
-            logger.log(
-                time = clock.elapsed(),
-                error_x = err_x,
-                error_y = err_y,
-                h = get_current_altitude(),
-                vel_x = int(err_x * 0.8),
-                vel_y = int(err_y * 0.8),
-                vel_z = 0,
-                cam = camera_mode
-            )
-
+            vx = int(err_x * 0.8)
+            vy = int(err_y * 0.8)
+            cam = state.get('cam', 'NA')
+            logger.log(padx, pady, err_x, err_y, vx, vy, 0, cam)
 
             time.sleep(LAND_ALIGNMENT_DELAY)
         else:
@@ -152,21 +149,12 @@ def precision_land():
             return False
 
         # Descend down to this layer’s altitude before the next alignment
-        descend_to_altitude(target_alt)
+        descend_to_altitude(target_alt, logger)
 
     # All layers done, now finalize the landing
     print("[INFO] Finalizing landing...")
     send("rc 0 0 0 0")
-    logger.log(
-        time = clock.elapsed(),
-        error_x = 0,
-        error_y = 0,
-        h = get_current_altitude(),
-        vel_x = 0,
-        vel_y = 0,
-        vel_z = 0,
-        cam = camera_mode
-    )
+    logger.log(0, 0, 0, 0, 0, 0, 0, state.get('cam', 'NA'))
     send("land")
     return True
 

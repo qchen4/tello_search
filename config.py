@@ -4,7 +4,7 @@
 TEST_MODE = True
 
 # PID Controller Parameters
-Kp = 0.35  # Reduced from 0.45 for less aggressive control
+Kp = 0.45  # Reduced from 0.45 for less aggressive control
 Ki = 0.003  # Increased from 0.002 for better steady-state error reduction
 Kd = 0.25  # Increased from 0.2 for better damping and oscillation reduction
 

@@ -64,6 +64,12 @@ class FlightLogger:
         # Call the full log method with vz=0
         self.log(padx, pady, error_x, error_y, vx, vy, 0, cam)
 
+    def error(self, msg):
+        """
+        Log an error‐level message to stdout.
+        """
+        print(f"[ERROR] {msg}")
+
 
     def close(self):
         self.file.close()
