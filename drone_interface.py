@@ -16,6 +16,14 @@ state = {}
 state_thread = None
 running = True
 
+
+def tof(self):
+    raw = self._read_tof_sensor()
+    # clamp between 20 cm and 200 cm
+    return max(20, min(raw, 200))
+
+
+
 def send(cmd: str, delay: float = 0.03):
     try:
         print(">>", cmd)

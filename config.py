@@ -19,6 +19,7 @@ MAX_PAD_LOSS_TIME = 15.0
 LAND_THRESHOLD = 5
 STABLE_COUNT_REQUIRED = 5
 LAND_ALTITUDES = [50, 35, 20, 10]
+LAND_CONV_RADIUS = 20
 
 # Landing alignment parameters
 LAND_ALIGNMENT_ITERATIONS = 100  # Max iterations per altitude layer
