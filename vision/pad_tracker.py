@@ -1,5 +1,5 @@
 # pad_tracker.py - Mission pad position tracking
-from drone_interface import state
+from control.drone_interface import state
 from config import TEST_MODE
 import time
 

@@ -5,14 +5,34 @@ import cv2
 import threading
 import numpy as np
 from config import VIDEO_STREAM_URL
-from drone_interface import send, state
+from control.drone_interface import send, state
 
-latest_data = {'padx': 0, 'pady': 0, 'ex': 0, 'ey': 0, 'vx': 0, 'vy': 0}
+latest_data = {
+    'padx': 0,
+    'pady': 0,
+    'ex': 0,
+    'ey': 0,
+    'vx': 0,
+    'vy': 0,
+    'battery': 0,
+    'state': '',
+    'pad': False,
+}
 
 use_bottom_camera = True
 
-def draw_overlay(padx, pady, error_x, error_y, vx, vy):
-    latest_data.update({'padx': padx, 'pady': pady, 'ex': error_x, 'ey': error_y, 'vx': vx, 'vy': vy})
+def draw_overlay(padx, pady, error_x, error_y, vx, vy, battery, state, pad_found):
+    latest_data.update({
+        'padx': padx,
+        'pady': pady,
+        'ex': error_x,
+        'ey': error_y,
+        'vx': vx,
+        'vy': vy,
+        'battery': battery,
+        'state': state,
+        'pad': pad_found,
+    })
 
 def toggle_camera():
     global use_bottom_camera
@@ -32,7 +52,7 @@ def get_battery_color(battery_level):
 def get_telemetry_data():
     """Get current telemetry data from drone state"""
     try:
-        battery = int(state.get('bat', 0))
+        battery = latest_data.get('battery') or int(state.get('bat', 0))
         height = int(state.get('h', 0))
         tof = int(state.get('tof', 0))
         temp = int(state.get('temph', 0))
@@ -70,7 +90,9 @@ def _video_thread():
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
                 cv2.putText(img, f"Camera: {'Bottom' if use_bottom_camera else 'Front'}", (10, 80),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 255), 2)
-                
+                cv2.putText(img, f"State: {latest_data['state']}", (10, 105),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
                 # Draw telemetry information (top right)
                 battery_color = get_battery_color(battery)
                 cv2.putText(img, f"Battery: {battery}%", (w - 200, 30),
@@ -80,6 +102,9 @@ def _video_thread():
                 cv2.putText(img, f"ToF: {tof}cm", (w - 200, 80),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
                 cv2.putText(img, f"Temp: {temp}°C", (w - 200, 105),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                pad_text = "YES" if latest_data['pad'] else "NO"
+                cv2.putText(img, f"Pad: {pad_text}", (w - 200, 130),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
                 
                 # Draw battery bar (bottom of screen)
@@ -128,4 +153,5 @@ def _video_thread():
 def start_video_thread():
     thread = threading.Thread(target=_video_thread, daemon=True)
     thread.start()
+
 
