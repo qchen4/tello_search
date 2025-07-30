@@ -1,12 +1,12 @@
 # main.py - Entry point for the Tello orbit + precision landing mission
 
 from config import ORBIT_DURATION, MAX_PAD_LOSS_TIME, PAD_DETECTION_TIMEOUT
-from drone_interface import initialize_drone, send, start_state_reader, stop_state_reader, cleanup_sockets
-from pad_tracker import wait_for_pad_origin, get_pad_position
-from pid_controller import PIDController
-from precision_landing import precision_land
+from control.drone_interface import initialize_drone, send, start_state_reader, stop_state_reader, cleanup_sockets
+from vision.pad_tracker import wait_for_pad_origin, get_pad_position
+from control.pid_controller import PIDController
+from control.precision_landing import precision_land
 from logger import FlightLogger
-from video_overlay import start_video_thread, draw_overlay
+from vision.video_overlay import start_video_thread, draw_overlay
 import time
 import signal
 import threading

@@ -1,0 +1,46 @@
+.
+├── analysis
+│   ├── analyze_flight.py
+│   ├── analyze_latest_performance.py
+│   ├── analyze_pid.py
+│   ├── compare_pid.py
+│   └── __init__.py
+├── config.py
+├── control
+│   ├── drone_interface.py
+│   ├── __init__.py
+│   ├── pid_controller.py
+│   └── precision_landing.py
+├── IMPROVEMENTS.md
+├── log
+├── logger.py
+├── main.py
+├── __pycache__
+│   ├── analyze_flight.cpython-312.pyc
+│   ├── config.cpython-312.pyc
+│   ├── drone_interface.cpython-312.pyc
+│   ├── logger.cpython-312.pyc
+│   ├── main.cpython-312.pyc
+│   ├── pad_tracker.cpython-312.pyc
+│   ├── pid_controller.cpython-312.pyc
+│   ├── precision_landing.cpython-312.pyc
+│   └── video_overlay.cpython-312.pyc
+├── README.md
+├── requirements.txt
+├── Tello SDK 2.0 User Guide.pdf
+├── test_connection.py
+├── test_pad_detection.py
+├── tree
+├── venv
+│   ├── bin
+│   ├── include
+│   ├── lib
+│   ├── lib64 -> lib
+│   ├── pyvenv.cfg
+│   └── share
+└── vision
+    ├── __init__.py
+    ├── pad_tracker.py
+    └── video_overlay.py
+
+12 directories, 32 files
