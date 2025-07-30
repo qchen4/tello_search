@@ -97,7 +97,7 @@ def main():
         logger.start()
 
         print("[INFO] Moving to orbit position...")
-        send("go 0 50 50 20")
+        send("go 0 50 70 20")
         time.sleep(2)
 
         print("[INFO] Starting orbital phase...")

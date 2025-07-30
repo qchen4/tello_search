@@ -19,6 +19,7 @@ def get_pad_position():
             
         # Debug: Show what keys are available
         if 'padx' not in state or 'pady' not in state:
+            print(f"[DEBUG] Pad missing at state: {state}")
             print(f"[DEBUG] Available state keys: {list(state.keys())}")
             return False, 0, 0
             
