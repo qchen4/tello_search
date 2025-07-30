@@ -1,7 +1,7 @@
 # precision_landing.py - Modular layered descent landing
 
-from drone_interface import send, state
-from pad_tracker import get_pad_position
+from control.drone_interface import send, state
+from vision.pad_tracker import get_pad_position
 from config import (
     LAND_ALTITUDES,
     LAND_CONV_RADIUS,

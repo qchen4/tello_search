@@ -7,6 +7,7 @@ from config import TELLO_IP, TELLO_CMD_PORT, TELLO_STATE_PORT
 
 cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 cmd_sock.bind(('', 9000))
+cmd_sock.settimeout(5)
 
 state_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 state_sock.bind(('', TELLO_STATE_PORT))
@@ -14,7 +15,9 @@ state_sock.settimeout(5)
 
 state = {}
 state_thread = None
+battery_thread = None
 running = True
+battery_percent = 0
 
 
 def tof(self):
@@ -31,6 +34,37 @@ def send(cmd: str, delay: float = 0.03):
         time.sleep(delay)
     except (socket.error, OSError) as e:
         print(f"[ERROR] Failed to send command '{cmd}': {e}")
+
+def query_battery(timeout: float = 2.0):
+    """Query battery percentage from the drone."""
+    try:
+        cmd_sock.sendto(b"battery?", (TELLO_IP, TELLO_CMD_PORT))
+        cmd_sock.settimeout(timeout)
+        data, _ = cmd_sock.recvfrom(1024)
+        return int(data.decode().strip())
+    except (socket.timeout, ValueError, OSError) as e:
+        print(f"[WARNING] Battery query failed: {e}")
+        return None
+    finally:
+        cmd_sock.settimeout(5)
+
+def _battery_poller():
+    global battery_percent, running
+    while running:
+        level = query_battery()
+        if level is not None:
+            battery_percent = level
+        time.sleep(5)
+
+def start_battery_monitor():
+    global battery_thread
+    battery_thread = threading.Thread(target=_battery_poller, daemon=True)
+    battery_thread.start()
+
+def stop_battery_monitor():
+    global battery_thread
+    if battery_thread and battery_thread.is_alive():
+        battery_thread.join(timeout=1.0)
 
 def _state_listener():
     global state, running
@@ -94,4 +128,5 @@ def initialize_drone():
     except Exception as e:
         print(f"[ERROR] Failed to initialize drone: {e}")
         raise
+
 

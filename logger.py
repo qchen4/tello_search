@@ -4,7 +4,7 @@ import os
 import csv
 import datetime
 from config import LOG_FOLDER
-from drone_interface import state
+from control.drone_interface import state
 
 class FlightLogger:
     def __init__(self):

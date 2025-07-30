@@ -1,7 +1,16 @@
 # main.py - Entry point for the Tello orbit + precision landing mission
 
 from config import ORBIT_DURATION, MAX_PAD_LOSS_TIME, PAD_DETECTION_TIMEOUT
-from control.drone_interface import initialize_drone, send, start_state_reader, stop_state_reader, cleanup_sockets
+from control.drone_interface import (
+    initialize_drone,
+    send,
+    start_state_reader,
+    stop_state_reader,
+    cleanup_sockets,
+    start_battery_monitor,
+    stop_battery_monitor,
+    battery_percent,
+)
 from vision.pad_tracker import wait_for_pad_origin, get_pad_position
 from control.pid_controller import PIDController
 from control.precision_landing import precision_land
@@ -15,6 +24,8 @@ import sys
 # Global
 pid = PIDController()
 logger = None
+drone_state = "Idle"
+pad_found = False
 
 
 def emergency_land(sig, frame):
@@ -28,23 +39,29 @@ def emergency_land(sig, frame):
     if logger:
         logger.close()
     
+    global drone_state
+    drone_state = "Emergency"
     stop_state_reader()
+    stop_battery_monitor()
     cleanup_sockets()
     print("[EMERGENCY] Emergency landing complete")
     sys.exit(0)
 
 
 def orbit_phase():
-    global pid
+    global pid, pad_found, drone_state
     pad_loss_start = None
     start_time = time.time()
-    
+    drone_state = "Orbiting"
+
     while time.time() - start_time < ORBIT_DURATION:
         try:
             pad_detected, padx, pady = get_pad_position()
             now = time.time()
 
+            pad_found = pad_detected
             if not pad_detected:
+                drone_state = "Searching"
                 if pad_loss_start is None:
                     pad_loss_start = now
                 elif now - pad_loss_start > MAX_PAD_LOSS_TIME:
@@ -56,10 +73,21 @@ def orbit_phase():
                     send("rc 0 0 0 0")
                     continue
             else:
+                drone_state = "Pad Located"
                 pad_loss_start = None
 
             vx, vy = pid.update(padx, pady)
-            draw_overlay(padx, pady, pid.error_x, pid.error_y, vx, vy)
+            draw_overlay(
+                padx,
+                pady,
+                pid.error_x,
+                pid.error_y,
+                vx,
+                vy,
+                battery_percent,
+                drone_state,
+                pad_found,
+            )
             logger.log_step(padx, pady, pid.error_x, pid.error_y, vx, vy)
             send(f"rc {vx} {vy} 0 0")
             time.sleep(0.05)
@@ -73,7 +101,7 @@ def orbit_phase():
 
 
 def main():
-    global logger
+    global logger, drone_state
     try:
         signal.signal(signal.SIGINT, emergency_land)
         signal.signal(signal.SIGTERM, emergency_land)
@@ -81,12 +109,15 @@ def main():
         print("[INFO] Starting Tello autonomous mission...")
         
         start_state_reader()
+        start_battery_monitor()
         start_video_thread()
+        drone_state = "Initializing"
         
         print("[INFO] Initializing drone...")
         initialize_drone()
         
         print("[INFO] Waiting for mission pad...")
+        drone_state = "Searching Pad"
         try:
             wait_for_pad_origin()
         except TimeoutError as e:
@@ -97,13 +128,16 @@ def main():
         logger.start()
 
         print("[INFO] Moving to orbit position...")
+        drone_state = "Moving to Orbit"
         send("go 0 50 70 20")
         time.sleep(2)
 
         print("[INFO] Starting orbital phase...")
         if orbit_phase():
             print("[INFO] Orbital phase complete, starting precision landing...")
+            drone_state = "Landing"
             if precision_land(logger):
+                drone_state = "Landed"
                 print("[SUCCESS] Mission completed successfully!")
             else:
                 print("[WARNING] Precision landing failed")
@@ -118,6 +152,7 @@ def main():
         if logger:
             logger.close()
         stop_state_reader()
+        stop_battery_monitor()
         cleanup_sockets()
         print("[INFO] Mission cleanup complete")
 
