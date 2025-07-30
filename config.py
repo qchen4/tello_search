@@ -1,49 +1,44 @@
-# config.py - Centralized parameters and constants
+# config.py - concise parameters and constants
 
-# Test mode - set to True to bypass mission pad detection for testing
-TEST_MODE = True
+# Modes
+TEST_MODE = True  # bypass pad detection for testing
 
-# PID Controller Parameters
-#Kp = 0.45  # Reduced from 0.45 for less aggressive control
-#Ki = 0.0025  # Increased from 0.002 for better steady-state error reduction
-#Kd = 0.25  # Increased from 0.2 for better damping and oscillation reduction
+# PID controller gains:
+#   Kp (Proportional): response to current error magnitude
+#   Ki (Integral): addresses accumulated past errors to eliminate steady-state offset
+#   Kd (Derivative): predicts and dampens future error to reduce overshoot
+Kp = 0.45     # proportional gain
+Ki = 0.0005   # integral gain
+Kd = 0.25     # derivative gain
 
-
-Kp = 0.45
-Ki = 0.0005
-Kd = 0.25
-
-
-
-
-# Target radius for orbit (in cm)
-radius_target = 50
-
-# Flight timing (in seconds)
-ORBIT_DURATION = 20
-MAX_PAD_LOSS_TIME = 15.0
+# Orbit settings
+RADIUS_TARGET     = 50   # cm: desired distance from pad center
+ORBIT_DURATION    = 20   # s: duration to maintain orbit before landing
+MAX_PAD_LOSS_TIME = 15   # s: max time to attempt pad detection before abort
 
 # Landing control
-LAND_THRESHOLD = 5
+# LAND_CONV_RADIUS: pixel radius within which descent begins
+# STABLE_COUNT_REQUIRED: consecutive aligned frames needed per layer
+# LAND_ALTITUDES: altitude layers (cm) for staged alignment
+# LAND_ALIGNMENT_ITER: max alignment attempts per layer
+# LAND_ALIGNMENT_DELAY: wait between alignment attempts (s)
+# LAND_DESCENT_DIST: descent step size per layer (cm)
+# LAND_DESCENT_DELAY: wait after descent command (s)
+LAND_CONV_RADIUS      = 6
 STABLE_COUNT_REQUIRED = 5
-LAND_ALTITUDES = [100, 70, 40, 10]
-LAND_CONV_RADIUS = 20
-
-# Landing alignment parameters
-LAND_ALIGNMENT_ITERATIONS = 200  # Max iterations per altitude layer
-LAND_ALIGNMENT_DELAY = 0.1  # Seconds between alignment checks
-LAND_DESCENT_DISTANCE = 15  # cm to descend per layer
-LAND_DESCENT_DELAY = 2  # Seconds to wait after descent
+LAND_ALTITUDES        = [100, 70, 40, 10]
+LAND_ALIGNMENT_ITER   = 200
+LAND_ALIGNMENT_DELAY  = 0.1
+LAND_DESCENT_DIST     = 15
+LAND_DESCENT_DELAY    = 2
 
 # Pad detection timeout
-PAD_DETECTION_TIMEOUT = 30  # Seconds to wait for initial pad detection
+PAD_DETECTION_TIMEOUT = 30  # s to wait for initial pad detection
 
-# Tello network
-TELLO_IP = '192.168.10.1'
-TELLO_CMD_PORT = 8889
+# Network & video
+TELLO_IP         = '192.168.10.1'
+TELLO_CMD_PORT   = 8889
 TELLO_STATE_PORT = 8890
-
-# Video stream URL
 VIDEO_STREAM_URL = 'udp://@0.0.0.0:11111'
 
 # Logging
